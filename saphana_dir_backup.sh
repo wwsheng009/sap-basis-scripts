@@ -24,7 +24,7 @@ LOG_FILE="$BACKUP_ROOT/backup.log"
 # 当前日期用于命名备份子目录
 CURRENT_DATE=$(date +%Y%m%d)
 
-VIRTUAL_IP="172.18.3.20"
+VIRTUAL_IP="172.18.3.83"
 
 # 记录日志的函数
 log_message() {
@@ -60,10 +60,10 @@ init_backup_env() {
 sanitize_filename() {
     # 先删除尾部的 / 号
     local clean_name="${1%/}"
-    # 提取最后的目录名
-    clean_name="${clean_name##*/}"
-    # 再替换特殊字符并删除尾部的 _
-    echo "$clean_name" | sed -e 's/[^A-Za-z0-9._-]/_/g' -e 's/_*$//'
+    # 删除开头的 / 号
+    clean_name="${clean_name#/}"
+    # 将路径中的斜杠替换为下划线，并替换其他特殊字符
+    echo "$clean_name" | sed -e 's|/|_|g' -e 's/[^A-Za-z0-9._-]/_/g' -e 's/_*$//'
 }
 
 # 检查服务器是否存在特定的虚拟IP地址，判断是不是主节点
@@ -160,14 +160,16 @@ main() {
     check_root_user
     init_backup_env
 
+    # 清理旧的备份
+    cleanup_old_backups
+
     # 执行备份操作
     local backup_failed=0
     for dir in "${BACKUP_DIRS[@]}"; do
         perform_backup "$dir" || backup_failed=1
     done
 
-    # 清理旧的备份
-    cleanup_old_backups
+
 
     if [ $backup_failed -eq 0 ]; then
         log_message "SAP DIR Backup process completed successfully."

@@ -13,4 +13,5 @@
 
 # 每周日0点执行HDB全备
 0 0 * * * su - prdadm -c "/hana/saphana_db_backup.sh all >> /hana/temp/sync/hana_db_backup_job.log 2>&1"
+# 备份应用目录
 0 0 * * * /hana/saphana_dir_backup.sh >> /hana/temp/sync/hana_dir_backup_job.log  2>&1
