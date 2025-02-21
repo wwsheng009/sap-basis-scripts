@@ -1,0 +1,16 @@
+# 每周日0点执行HDB全备
+0 0 * * 1 devadm /bin/bash /hana/saphana_db_backup.sh full_hdb
+
+# 每天（除周日）0点执行HDB增量备份
+0 0 * * 1-6 devadm /bin/bash /hana/saphana_db_backup.sh incremental_hdb
+
+# 周日0点执行SYSTEMDB全备
+0 0 * * 0 devadm /bin/bash /hana/saphana_db_backup.sh full_systemdb
+
+# 每月保存一次
+0 0 1 * * root /bin/bash /hana/saphana_dir_backup.sh
+
+
+# 每周日0点执行HDB全备
+0 0 * * * su - prdadm -c "/hana/saphana_db_backup.sh all >> /hana/temp/sync/hana_db_backup_job.log 2>&1"
+0 0 * * * /hana/saphana_dir_backup.sh >> /hana/temp/sync/hana_dir_backup_job.log  2>&1
