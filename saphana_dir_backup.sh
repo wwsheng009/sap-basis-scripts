@@ -110,9 +110,9 @@ perform_backup() {
     # 创建备份子目录
     mkdir -p "$(dirname "$backup_file")"
 
-    # 执行备份并压缩
+    # 执行备份并压缩，忽略文件变化警告
     log_message "Backing up $dir to $backup_file"
-    tar -czf "$backup_file" "$dir" 2>> "$LOG_FILE"
+    tar --warning=no-file-changed -czf "$backup_file" "$dir" 2>> "$LOG_FILE"
 
     if [ $? -eq 0 ]; then
         local backup_size=$(du -sh "$backup_file" 2>/dev/null | cut -f1)
@@ -135,7 +135,9 @@ cleanup_old_backups() {
             log_message "Removing old backup directory $date_dir"
             rm -rf "$date_dir"
         elif [ "$date" -eq "$today" ]; then
-            cleanup_today_backups "$date_dir"
+            # 直接删除
+            rm -rf "$date_dir"
+            # cleanup_today_backups "$date_dir"
         fi
     done
 }
@@ -160,7 +162,7 @@ main() {
     check_root_user
     init_backup_env
 
-    # 清理旧的备份
+    # 清理旧的备份，当备份的空间不多时，先清理旧的备份
     cleanup_old_backups
 
     # 执行备份操作
@@ -168,8 +170,6 @@ main() {
     for dir in "${BACKUP_DIRS[@]}"; do
         perform_backup "$dir" || backup_failed=1
     done
-
-
 
     if [ $backup_failed -eq 0 ]; then
         log_message "SAP DIR Backup process completed successfully."
